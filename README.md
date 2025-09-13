@@ -1,112 +1,16 @@
-# Crowdsourced Pothole Reporting & Tracking System
+# Backend API Server
 
-A comprehensive civic tech platform that empowers citizens to report and track potholes, road construction, and road closures in their city. The system includes a mobile reporting app, a web-based map viewer, and a robust backend API with intelligent duplicate detection and priority scoring.
+This is the backend server for the Crowdsourced Pothole Reporting & Tracking System. It provides RESTful API endpoints for managing issues, users, and handling geospatial data.
 
-## 🏗️ System Architecture
-
-### High-Level Architecture
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Mobile App    │    │   Web Map       │    │   Backend API   │
-│   (Reporter)    │◄──►│   (Viewer)      │◄──►│   (Server)      │
-│                 │    │                 │    │                 │
-│ • GPS Location  │    │ • Interactive   │    │ • REST API      │
-│ • Photo Upload  │    │   Map           │    │ • MongoDB       │
-│ • Offline Sync  │    │ • Filtering     │    │ • Cloudinary    │
-│ • Issue Types   │    │ • Statistics    │    │ • Duplicate     │
-└─────────────────┘    └─────────────────┘    │   Detection     │
-                                              │ • Priority      │
-                                              │   Scoring       │
-                                              └─────────────────┘
-```
-
-## 🚀 Features
-
-### Core Functionality
-- **One-Click Reporting**: Easy issue reporting with automatic GPS location capture
-- **Photo Upload**: Support for multiple photos with cloud storage
-- **Issue Types**: Potholes, Road Construction, Road Closures
-- **Severity Levels**: Low, Medium, High, Critical
-- **Status Tracking**: Reported → Verified → Repair Scheduled → Fixed
-
-### Advanced Features
-- **Smart Duplicate Detection**: Prevents duplicate reports using GPS proximity and similarity algorithms
-- **Priority Scoring System**: Ranks issues based on severity, upvotes, road type, and age
-- **Offline Capability**: Reports can be saved offline and synced when connection is restored
-- **Interactive Map**: Real-time visualization with custom icons and filtering
-- **Upvoting System**: Community verification through upvotes
-- **Statistics Dashboard**: Comprehensive analytics and reporting
-
-## 📱 Applications
-
-### 1. Mobile Reporter App (React Native/Expo)
-- **Location**: `client-reporter/`
-- **Features**:
-  - GPS-based location capture
-  - Camera integration for photos
-  - Offline report storage
-  - Issue type selection with icons
-  - Severity assessment
-  - Automatic sync when online
-
-### 2. Web Map Viewer (React)
-- **Location**: `client-mapviewer/`
-- **Features**:
-  - Interactive map with Leaflet
-  - Custom markers for different issue types
-  - Real-time filtering and statistics
-  - Detailed issue information
-  - Responsive design
-
-### 3. Backend API (Node.js/Express)
-- **Location**: `server/`
-- **Features**:
-  - RESTful API endpoints
-  - MongoDB with geospatial indexing
-  - Cloudinary image storage
-  - Duplicate detection algorithm
-  - Priority scoring system
-
-## 🛠️ Technology Stack
-
-### Backend
-- **Node.js** with Express.js
-- **MongoDB** with Mongoose ODM
-- **Cloudinary** for image storage
-- **Geolib** for distance calculations
-- **Sharp** for image processing
-
-### Mobile App
-- **React Native** with Expo
-- **Expo Location** for GPS
-- **Expo Camera** for photo capture
-- **AsyncStorage** for offline storage
-- **Axios** for API communication
-
-### Web App
-- **React** with Create React App
-- **Leaflet** for interactive maps
-- **React Bootstrap** for UI components
-- **Axios** for API communication
-
-## 🔧 Installation & Setup
-
-### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (v4.4 or higher)
-- Cloudinary account (for image storage)
-- Expo CLI (for mobile app)
-
-### 1. Backend Setup
+## 🚀 Quick Start
 
 ```bash
-cd server
+# Install dependencies
 npm install
 
-# Create .env file with your configuration
+# Set up environment variables
 cp config.js .env
-# Edit .env with your MongoDB URI and Cloudinary credentials
+# Edit .env with your configuration
 
 # Start MongoDB (if running locally)
 mongod
@@ -115,34 +19,29 @@ mongod
 npm run dev
 ```
 
-### 2. Mobile App Setup
+## 📁 Project Structure
 
-```bash
-cd client-reporter
-npm install
-
-# Install Expo CLI globally
-npm install -g @expo/cli
-
-# Start the development server
-expo start
+```
+server/
+├── models/
+│   ├── Issue.js          # Issue data model with geospatial support
+│   └── User.js           # User data model
+├── routes/
+│   ├── issues.js         # Issue-related API endpoints
+│   └── users.js          # User-related API endpoints
+├── middleware/
+│   ├── duplicateDetection.js  # Smart duplicate detection algorithm
+│   └── upload.js              # Image upload and processing
+├── config.js             # Configuration settings
+├── server.js             # Main server file
+└── package.json          # Dependencies and scripts
 ```
 
-### 3. Web App Setup
-
-```bash
-cd client-mapviewer
-npm install
-
-# Start the development server
-npm start
-```
-
-## 🔑 Configuration
+## 🔧 Configuration
 
 ### Environment Variables
 
-Create a `.env` file in the server directory:
+Create a `.env` file with the following variables:
 
 ```env
 PORT=3000
@@ -153,41 +52,127 @@ CLOUDINARY_API_SECRET=your_api_secret
 JWT_SECRET=your_jwt_secret_key
 ```
 
+### MongoDB Setup
+
+1. Install MongoDB locally or use MongoDB Atlas
+2. Create a database named `pothole-reporting`
+3. The application will automatically create the necessary collections and indexes
+
 ### Cloudinary Setup
-1. Create a Cloudinary account
-2. Get your cloud name, API key, and API secret
+
+1. Create a Cloudinary account at https://cloudinary.com
+2. Get your cloud name, API key, and API secret from the dashboard
 3. Update the environment variables
 
 ## 📊 API Endpoints
 
 ### Issues
-- `POST /api/issues/report` - Report a new issue
-- `GET /api/issues/map` - Get issues for map display
-- `POST /api/issues/:id/upvote` - Upvote an issue
-- `PATCH /api/issues/:id/status` - Update issue status
-- `GET /api/issues/stats` - Get statistics
-- `GET /api/issues/:id` - Get issue details
+
+#### Report a New Issue
+```http
+POST /api/issues/report
+Content-Type: multipart/form-data
+
+{
+  "type": "pothole",
+  "latitude": 12.9716,
+  "longitude": 77.5946,
+  "address": "MG Road, Bangalore",
+  "severity": "high",
+  "description": "Large pothole causing traffic issues",
+  "roadType": "main_road",
+  "ward": "Ward 1",
+  "reporterId": "user_id_here",
+  "photos": [file1, file2, ...]
+}
+```
+
+#### Get Issues for Map Display
+```http
+GET /api/issues/map?minLat=12.8&maxLat=13.2&minLng=77.4&maxLng=77.8&types=pothole,road_construction&statuses=reported,verified&limit=100
+```
+
+#### Upvote an Issue
+```http
+POST /api/issues/:issueId/upvote
+Content-Type: application/json
+
+{
+  "userId": "user_id_here"
+}
+```
+
+#### Update Issue Status
+```http
+PATCH /api/issues/:issueId/status
+Content-Type: application/json
+
+{
+  "status": "verified",
+  "verifiedBy": "official_user_id",
+  "estimatedRepairTime": 7
+}
+```
+
+#### Get Issue Statistics
+```http
+GET /api/issues/stats?ward=Ward1&timeRange=30
+```
+
+#### Get Single Issue Details
+```http
+GET /api/issues/:issueId
+```
 
 ### Users
-- `POST /api/users/register` - Register a new user
-- `GET /api/users/:id` - Get user profile
-- `PATCH /api/users/:id` - Update user profile
-- `GET /api/users/leaderboard/top-reporters` - Get leaderboard
 
-## 🧠 Algorithm Details
+#### Register a New User
+```http
+POST /api/users/register
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "role": "citizen"
+}
+```
+
+#### Get User Profile
+```http
+GET /api/users/:userId
+```
+
+#### Update User Profile
+```http
+PATCH /api/users/:userId
+Content-Type: application/json
+
+{
+  "username": "new_username",
+  "email": "new_email@example.com"
+}
+```
+
+#### Get Leaderboard
+```http
+GET /api/users/leaderboard/top-reporters?limit=10
+```
+
+## 🧠 Key Features
 
 ### Duplicate Detection Algorithm
 
-The system uses a sophisticated algorithm to detect potential duplicates:
+The system implements a sophisticated duplicate detection algorithm that:
 
-1. **Geographic Proximity**: Issues within 50 meters are considered
-2. **Time Proximity**: Reports within 7 days are evaluated
-3. **Type Matching**: Same issue type required
-4. **Severity Consideration**: Configurable severity matching
-5. **Similarity Score**: Calculated based on distance, time, and description
+1. **Geographic Proximity**: Checks for issues within 50 meters
+2. **Time Proximity**: Considers reports within 7 days
+3. **Type Matching**: Ensures same issue type
+4. **Severity Consideration**: Optionally matches severity levels
+5. **Similarity Scoring**: Calculates similarity based on multiple factors
 
 ```javascript
-// Similarity calculation
+// Example similarity calculation
 const similarityScore = 
   (distanceScore * 0.4) +      // 40% weight for distance
   (severityMatch * 0.3) +      // 30% weight for severity
@@ -197,7 +182,7 @@ const similarityScore =
 
 ### Priority Scoring System
 
-Issues are ranked using a multi-factor scoring system:
+Issues are automatically ranked using a multi-factor scoring system:
 
 ```javascript
 const priorityScore = 
@@ -207,11 +192,22 @@ const priorityScore =
   ageBonus;                   // Time factor (up to 2 points)
 ```
 
+### Geospatial Queries
+
+The system uses MongoDB's geospatial capabilities:
+
+- **2dsphere Index**: For efficient location-based queries
+- **GeoJSON Format**: Standard format for location data
+- **Bounding Box Queries**: For map display optimization
+- **Distance Calculations**: Using the geolib library
+
 ## 🗄️ Database Schema
 
 ### Issues Collection
+
 ```javascript
 {
+  _id: ObjectId,
   type: String,              // 'pothole', 'road_construction', 'road_closure'
   location: {
     type: 'Point',
@@ -242,8 +238,10 @@ const priorityScore =
 ```
 
 ### Users Collection
+
 ```javascript
 {
+  _id: ObjectId,
   username: String,
   email: String,
   role: String,              // 'citizen', 'official', 'admin'
@@ -256,47 +254,106 @@ const priorityScore =
 }
 ```
 
+## 🔍 Database Indexes
+
+The system creates several indexes for optimal performance:
+
+```javascript
+// Geospatial index for location queries
+issueSchema.index({ location: '2dsphere' });
+
+// Compound indexes for filtering
+issueSchema.index({ status: 1, priority: -1 });
+issueSchema.index({ type: 1, status: 1 });
+```
+
+## 🖼️ Image Processing
+
+The system handles image uploads with:
+
+- **Multer**: For handling multipart/form-data
+- **Cloudinary**: For cloud storage and optimization
+- **Sharp**: For server-side image processing
+- **Automatic Optimization**: Resizing, compression, and format conversion
+
 ## 🚀 Deployment
 
-### Backend Deployment
-1. Deploy to cloud platform (Heroku, AWS, DigitalOcean)
-2. Set up MongoDB Atlas or cloud MongoDB instance
-3. Configure environment variables
-4. Set up Cloudinary account
+### Local Development
+```bash
+npm run dev
+```
 
-### Mobile App Deployment
-1. Build with Expo: `expo build:android` or `expo build:ios`
-2. Deploy to app stores or distribute as APK/IPA
+### Production
+```bash
+npm start
+```
 
-### Web App Deployment
-1. Build: `npm run build`
-2. Deploy to static hosting (Netlify, Vercel, GitHub Pages)
+### Docker Deployment
+```dockerfile
+FROM node:16-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --production
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"]
+```
 
-## 🤝 Contributing
+## 🧪 Testing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+```bash
+# Run tests (when implemented)
+npm test
 
-## 📄 License
+# Run with coverage
+npm run test:coverage
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📈 Performance Considerations
 
-## 🆘 Support
+- **Geospatial Indexing**: Optimized for location-based queries
+- **Image Optimization**: Automatic compression and resizing
+- **Pagination**: Limit results for large datasets
+- **Caching**: Consider implementing Redis for frequently accessed data
+- **CDN**: Use Cloudinary's CDN for fast image delivery
 
-For support and questions:
-- Create an issue in the repository
-- Check the documentation
-- Review the API endpoints
+## 🔒 Security
 
-## 🔮 Future Enhancements
+- **Input Validation**: All inputs are validated and sanitized
+- **File Upload Security**: Image type and size validation
+- **CORS**: Configured for cross-origin requests
+- **Rate Limiting**: Consider implementing rate limiting for production
 
-- Real-time notifications
-- Machine learning for automatic severity detection
-- Integration with municipal systems
-- Mobile app for officials
-- Advanced analytics dashboard
-- Social media integration
-- Multi-language support
+## 🐛 Error Handling
+
+The server includes comprehensive error handling:
+
+- **Validation Errors**: Detailed error messages for invalid inputs
+- **Database Errors**: Graceful handling of MongoDB errors
+- **File Upload Errors**: Proper error handling for image uploads
+- **Network Errors**: Retry logic for external service calls
+
+## 📝 Logging
+
+Consider implementing structured logging with:
+
+- **Winston**: For application logging
+- **Morgan**: For HTTP request logging
+- **Error Tracking**: Services like Sentry for production monitoring
+
+## 🔄 API Versioning
+
+For future API changes, consider implementing versioning:
+
+```javascript
+app.use('/api/v1', routes);
+```
+
+## 📊 Monitoring
+
+For production deployment, consider:
+
+- **Health Checks**: `/health` endpoint for monitoring
+- **Metrics**: Application performance monitoring
+- **Uptime Monitoring**: External monitoring services
+- **Log Aggregation**: Centralized logging system
